@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Austin Animal Shelter Dashboard</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="app-title">
+      <h1>Austin Animal Shelter Dashboard</h1>
+    </div>
+
+    <div id="controls" class="panel panel-controls" aria-label="Dashboard controls">
+      <h2 class="panel-title">Controls</h2>
+      <!-- empty controls  -->
+      <div class="panel-body placeholder">
+        Filters will go here (animal type, intake type, outcome type, date range, reset).
+      </div>
+    </div>
+  </header>
+
+  <main class="grid" aria-label="Dashboard layout">
+    <section id="kpis" class="panel panel-kpis" aria-label="Key metrics">
+      <h2 class="panel-title">KPIs</h2>
+      <div class="panel-body placeholder">
+        KPI cards will go here (total intakes, adoption rate, median stay).
+      </div>
+    </section>
+
+    <section id="legend" class="panel panel-legend" aria-label="Legend">
+      <h2 class="panel-title">Legend</h2>
+      <div class="panel-body placeholder">
+        Color legend and active state indicators will go here.
+      </div>
+    </section>
+
+    <section id="timeView" class="panel panel-time" aria-label="Outcomes over time">
+      <h2 class="panel-title">Outcomes over Time</h2>
+      <div class="panel-body placeholder">
+        Time series chart container.
+      </div>
+    </section>
+
+    <section id="barView" class="panel panel-bars" aria-label="Ranked comparison">
+      <h2 class="panel-title">Ranked Comparison</h2>
+      <div class="panel-body placeholder">
+        Bar chart container (avg stay by intake type/breed/age group).
+      </div>
+    </section>
+
+    <section id="mapView" class="panel panel-map" aria-label="Geographic distribution">
+      <h2 class="panel-title">Map</h2>
+      <div class="panel-body placeholder">
+        Map container (Austin area + aggregated points).
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <small>no D3 rendered yet.</small>
+  </footer>
+
+  <!-- Optional placeholder script (empty for now) -->
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
