@@ -1,0 +1,25 @@
+{
+  "name": "animal-shelter-data-visualization",
+  "version": "1.0.0",
+  "description": "data visualization for Austin animal shelter income / outcome data",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HodaAhmad/animal-shelter-data-visualization.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/HodaAhmad/animal-shelter-data-visualization/issues"
+  },
+  "homepage": "https://github.com/HodaAhmad/animal-shelter-data-visualization#readme",
+  "dependencies": {
+    "d3-dsv": "^3.0.1",
+    "node-fetch": "^3.3.2"
+  }
+}

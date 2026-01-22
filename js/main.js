@@ -1,2 +1,10 @@
-// Phase 0: layout only
-console.log("Phase 0 loaded.");
+import { loadDataset } from "./data/load.js";
+import { runQA } from "./data/qa.js";
+
+async function init() {
+  const data = await loadDataset("data/final.csv");
+  runQA(data);
+
+}
+
+init();
