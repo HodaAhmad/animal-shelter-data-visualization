@@ -67,19 +67,37 @@
         class="panel panel-map"
         aria-label="Geographic distribution"
       >
-        <h2 class="panel-title">Map</h2>
-        <div class="panel-body placeholder">
-          Map container (Austin area + aggregated points).
+        <div class="panel-title panel-title--with-actions">
+          <h2 class="panel-title__text">Locations</h2>
+          <button
+            id="mapFullscreenBtn"
+            class="icon-btn fullscreen-btn"
+            aria-label="Toggle fullscreen"
+            title="Fullscreen"
+          ></button>
+        </div>
+
+        <div class="panel-body">
+          <div class="panel-controls-row">
+            <div class="control">
+              <label for="intakeTypeSelect">Intake type</label>
+              <select id="intakeTypeSelect">
+                <option value="All">All</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="locationChart" class="chart-host"></div>
         </div>
       </section>
     </main>
 
     <footer class="app-footer">
-      <small>no D3 rendered yet.</small>
+      <small></small>
     </footer>
 
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <script type="module" src="js/main.js"></script>
+    <script src="https://unpkg.com/topojson-client@3"></script>
     <script type="module" src="js/main.js"></script>
   </body>
 </html>

@@ -2,7 +2,6 @@
 :root {
   --bg: #f6f7fb;
   --panel: #ffffff;
-  --panel-2: #ffffff;
   --border: rgba(17, 24, 39, 0.12);
   --text: rgba(17, 24, 39, 0.92);
   --muted: rgba(17, 24, 39, 0.62);
@@ -10,7 +9,6 @@
   --radius: 14px;
   --gap: 14px;
 }
-
 
 * { box-sizing: border-box; }
 
@@ -49,7 +47,7 @@ html, body {
   font-size: 0.95rem;
 }
 
-/* panels  */
+/* panels */
 .panel {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -63,8 +61,8 @@ html, body {
   border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
   letter-spacing: 0.2px;
-  color: var(--text);     
-  background: transparent; 
+  color: var(--text);
+  background: transparent;
 }
 
 .panel-body {
@@ -77,7 +75,7 @@ html, body {
   line-height: 1.35;
 }
 
-/* main Grid Layout  */
+/* main grid layout */
 .grid {
   display: grid;
   gap: var(--gap);
@@ -86,17 +84,12 @@ html, body {
 
 /* Desktop layout */
 @media (min-width: 960px) {
-  .app-header {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-
   .panel-controls .panel-body {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
-    }
+  }
 
   .grid {
     grid-template-columns: 1fr 1fr;
@@ -106,14 +99,14 @@ html, body {
       "bars   map";
   }
 
-  #kpis   { grid-area: kpis; min-height: 150px; }
-  #legend { grid-area: legend; min-height: 150px; }
+  #kpis     { grid-area: kpis; min-height: 150px; }
+  #legend   { grid-area: legend; min-height: 150px; }
   #timeView { grid-area: time; min-height: 320px; }
   #barView  { grid-area: bars; min-height: 320px; }
   #mapView  { grid-area: map;  min-height: 320px; }
 }
 
-/* Tablet layout */
+/* tablet layout */
 @media (min-width: 640px) and (max-width: 959px) {
   .grid {
     grid-template-columns: 1fr 1fr;
@@ -131,7 +124,7 @@ html, body {
   #mapView  { grid-area: map; }
 }
 
-/* Mobile layout */
+/* mobile layout */
 @media (max-width: 639px) {
   .grid {
     grid-template-columns: 1fr;
@@ -150,8 +143,107 @@ html, body {
   #mapView  { grid-area: map; }
 }
 
-/* footer  */
+/* footer */
 .app-footer {
   padding: 10px 0 22px;
   color: var(--muted-2);
+}
+
+/* map header actions */
+.panel-title--with-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.panel-title__text {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.icon-btn {
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 10px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.icon-btn:focus {
+  outline: 2px solid rgba(59,130,246,0.35);
+  outline-offset: 2px;
+}
+
+/* fullscreen overlay behavior */
+#mapView.is-fullscreen {
+  position: fixed;
+  inset: 18px;
+  z-index: 9999;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+#mapView.is-fullscreen .panel-body {
+  height: calc(100vh - 90px);
+  overflow: hidden;
+}
+
+/* generic controls */
+.control {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+  justify-content: start;
+  align-items: center;
+  min-width: 180px;
+}
+
+.control label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.control select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  background: white;
+}
+
+/* locations panel layout */
+#mapView .panel-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#mapView .panel-controls-row {
+  flex: 0 0 auto;
+}
+
+#locationChart.chart-host {
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+
+@media (max-width: 639px) {
+  #locationChart.chart-host {
+    min-height: 320px;
+  }
+}
+
+/* fullscreen styles */
+.fullscreen-btn::before {
+  content: "⛶";
+  font-size: 1rem;
+}
+
+#mapView.is-fullscreen .fullscreen-btn::before {
+  content: "✕";
 }

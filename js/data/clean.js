@@ -38,7 +38,7 @@ function parseFoundLocation(raw) {
 
   const loc_key = `${loc_area} | ${loc_city} ${loc_state}`;
 
-  // query: if we have city/state, format it nicely
+  // loc query: if we have city/state, format it 
   const loc_query =
     loc_city !== "Unknown" && loc_state !== "Unknown"
       ? loc_area === loc_city
@@ -47,6 +47,49 @@ function parseFoundLocation(raw) {
       : s;
 
   return { loc_area, loc_city, loc_state, loc_key, loc_query };
+}
+
+function makeLocationBucket(
+  { loc_key, loc_area, loc_city, loc_state },
+  found_location_raw,
+) {
+  //use loc_key (groups minor text variants into the same bucket)
+  const k = String(loc_key || "").trim();
+  if (k) return k;
+
+  //fallback: raw location
+  const s = String(found_location_raw || "").trim();
+  return s.length ? s : "Unknown";
+}
+
+function classifyLocationLevel(bucket, loc_city, loc_state) {
+  const b = String(bucket || "").toLowerCase();
+
+  if (!b || b === "unknown") return "unknown";
+
+  //area/city level
+  const city = String(loc_city || "").toLowerCase();
+  const st = String(loc_state || "").toLowerCase();
+
+  // map bucket to area if its likely an area/city level
+  if (
+    city &&
+    st &&
+    b.includes(city) &&
+    b.includes(st) &&
+    !/\d/.test(b) &&
+    !b.includes("&")
+  ) {
+    return "area";
+  }
+
+  //if it conatins intersection indicators
+  if (b.includes(" and ") || b.includes(" & ")) return "intersection";
+
+  //if it has numbers like in address
+  if (/\d/.test(b)) return "address";
+
+  return "area";
 }
 
 export function cleanRow(d) {
@@ -67,6 +110,13 @@ export function cleanRow(d) {
       : null;
 
   const loc = parseFoundLocation(d.found_location);
+  const found_location_raw = norm(d.found_location);
+  const location_bucket = makeLocationBucket(loc, found_location_raw);
+  const location_level = classifyLocationLevel(
+    location_bucket,
+    loc.loc_city,
+    loc.loc_state,
+  );
 
   return {
     // IDs
@@ -105,8 +155,10 @@ export function cleanRow(d) {
     count: num(d.count) ?? 1,
 
     // Location
-    found_location_raw: norm(d.found_location),
+    found_location_raw,
     ...loc,
+    location_bucket,
+    location_level,
 
     geo_status: d.geo_status ? String(d.geo_status).trim() : null,
     lat: num(d.lat),
