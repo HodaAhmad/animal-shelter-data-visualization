@@ -9,46 +9,139 @@
 
   <body>
     <header class="app-header">
-      <div class="app-title">
-        <h1>Austin Animal Shelter Dashboard</h1>
-      </div>
+      <div class="app-header__content">
+        <div class="app-header__brand">
+          <div class="app-header__logo">
+            <img src="assets/logo.png" alt="" />
+          </div>
 
-      <div
-        id="controls"
-        class="panel panel-controls"
-        aria-label="Dashboard controls"
-      >
-        <h2 class="panel-title">Controls</h2>
-        <!-- empty controls  -->
-        <div class="panel-body placeholder">
-          Filters will go here (animal type, intake type, outcome type, date
-          range, reset).
+          <div class="app-header__text">
+            <h1 class="app-header__title">Animal Shelter Dashboard</h1>
+            <div
+              class="app-header__subtitle"
+              style="
+                padding-top: 4px;
+                gap: 4px;
+                display: flex;
+                flex-direction: column;
+              "
+            >
+              <div>
+                Austin Animal Center : 2013–2018 showing Intakes, outcomes &
+                shelter stay patterns
+              </div>
+              <div>
+                Analyzing <span id="recordCount">79,672</span> of
+                <span id="recordTotal">79,672</span> records
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
     <main class="grid" aria-label="Dashboard layout">
       <section id="kpis" class="panel panel-kpis" aria-label="Key metrics">
-        <h2 class="panel-title">KPIs</h2>
-        <div class="panel-body placeholder">
-          KPI cards will go here (total intakes, adoption rate, median stay).
+        <div class="panel-body" id="kpisBody">
+          <div class="panel-body">
+            <div id="kpiCards" class="kpi-grid"></div>
+          </div>
         </div>
       </section>
 
-      <section id="legend" class="panel panel-legend" aria-label="Legend">
-        <h2 class="panel-title">Legend</h2>
-        <div class="panel-body placeholder">
-          Color legend and active state indicators will go here.
+      <!-- Controls panel   
+      <div
+        id="controls"
+        class="panel panel-controls"
+        aria-label="Dashboard controls"
+      >
+        <h2 class="panel-title">Controls</h2>
+        <section class="panel-body">
+          <div class="panel-controls-row">
+            <div class="control">
+              <label for="intakeTypeSelect">Highlight intake type</label>
+              <select id="intakeTypeSelect">
+                <option value="All">All</option>
+              </select>
+            </div>
+          </div>
+          <!--
+          <div class="control">
+            <label for="outcomeTypeSelect">Outcome type</label>
+            <select id="outcomeTypeSelect">
+              <option value="All">All outcomes</option>
+              <option value="Adoption" selected>Adoption only</option>
+            </select>
+          </div>
+          <div class="control">
+            <label style="visibility: hidden">Highlight</label>
+            <button id="toggleDecember" class="icon-btn" type="button">
+              Highlight Decembers
+            </button>
+          </div>
+                    
+
         </div>
       </section>
-
+-->
       <section
         id="timeView"
         class="panel panel-time"
         aria-label="Outcomes over time"
       >
-        <h2 class="panel-title">Outcomes over Time</h2>
-        <div class="panel-body placeholder">Time series chart container.</div>
+        <div class="panel-title panel-title--with-actions">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h2 class="panel-title__text">Outcomes Over Time</h2>
+            <div
+              id="timeSubtitle"
+              style="font-size: 12px; color: rgba(17, 24, 39, 0.62)"
+            >
+              Year: All years (seasonality)
+            </div>
+          </div>
+          <div
+            class="segmented"
+            id="timeModeToggle"
+            aria-label="Time view mode"
+          >
+            <button
+              type="button"
+              class="segmented__btn is-active"
+              data-mode="adoptions"
+            >
+              Adoptions trend
+            </button>
+            <button type="button" class="segmented__btn" data-mode="outcomes">
+              breakdown
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div id="timeChart" class="chart-host"></div>
+        </div>
+      </section>
+
+      <section
+        id="intakeView"
+        class="panel panel-intake"
+        aria-label="Intakes Overview"
+      >
+        <div class="panel-title panel-title--with-actions">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <h2 class="panel-title__text">Intake Types Over Time</h2>
+            <div
+              id="intakeYearLabel"
+              style="font-size: 12px; color: rgba(17, 24, 39, 0.62)"
+            >
+              Year: All years (seasonality)
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div id="intakeStackChart" class="chart-host"></div>
+        </div>
       </section>
 
       <section
@@ -56,9 +149,53 @@
         class="panel panel-bars"
         aria-label="Ranked comparison"
       >
-        <h2 class="panel-title">Ranked Comparison</h2>
-        <div class="panel-body placeholder">
-          Bar chart container (avg stay by intake type/breed/age group).
+        <div class="panel-title panel-title--with-actions">
+          <div class="panel-title__stack">
+            <h2 class="panel-title__text">Outcome Comparison by Species</h2>
+            <div id="barSubtitle" class="panel-subtitle">
+              Select a characteristic to compare outcome differences across
+              species
+            </div>
+          </div>
+
+          <!-- keep the metric toggle on the right, like timeView -->
+          <div
+            class="segmented"
+            id="smMetricToggle"
+            aria-label="Small multiples metric"
+          >
+            <button
+              type="button"
+              class="segmented__btn is-active"
+              data-metric="adoption_rate"
+            >
+              Adoption rate
+            </button>
+            <button
+              type="button"
+              class="segmented__btn"
+              data-metric="median_stay"
+            >
+              Median stay
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-body">
+          <div class="panel-controls-row">
+            <div class="control">
+              <label for="compareBySelect">Characteristic</label>
+              <select id="compareBySelect">
+                <option value="breed_group">Breed</option>
+                <option value="color">Color</option>
+                <option value="age_group_intake">Age group</option>
+                <option value="sex_upon_intake">Sex</option>
+                <option value="intake_type">Intake type</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="barChart" class="chart-host"></div>
         </div>
       </section>
 
@@ -78,15 +215,6 @@
         </div>
 
         <div class="panel-body">
-          <div class="panel-controls-row">
-            <div class="control">
-              <label for="intakeTypeSelect">Intake type</label>
-              <select id="intakeTypeSelect">
-                <option value="All">All</option>
-              </select>
-            </div>
-          </div>
-
           <div id="locationChart" class="chart-host"></div>
         </div>
       </section>
@@ -99,5 +227,61 @@
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="https://unpkg.com/topojson-client@3"></script>
     <script type="module" src="js/main.js"></script>
+
+    <!-- Help button + modal -->
+    <button id="helpFab" class="help-fab" aria-label="Help" title="How to use">
+      ?
+    </button>
+
+    <div id="helpModal" class="help-modal" aria-hidden="true">
+      <div class="help-backdrop" data-close="true"></div>
+
+      <div
+        class="help-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="helpTitle"
+      >
+        <div class="help-header">
+          <h3 id="helpTitle">How to use this dashboard</h3>
+          <button id="helpClose" class="help-close" aria-label="Close">
+            ✕
+          </button>
+        </div>
+
+        <div class="help-body">
+          <ul>
+            <li><b>Hover</b> charts to see tooltips with exact values.</li>
+            <li>
+              <b>Time chart:</b> click a point to filter by <b>year</b>.
+              Double-click to reset.
+            </li>
+            <li>
+              <b>Breakdown mode:</b> click legend items to highlight one outcome
+              line.
+            </li>
+            <li>
+              <b>Intake stacked bars:</b> hover segments to see share and
+              totals.
+            </li>
+            <li>
+              <b>Small multiples:</b> use the toggle to switch
+              <b>Adoption rate</b> vs <b>Median stay</b>.
+            </li>
+            <li><b>Map:</b> use fullscreen for easier viewing.</li>
+          </ul>
+          <div
+            style="
+              margin-top: 10px;
+              color: rgba(17, 24, 39, 0.6);
+              font-size: 12px;
+            "
+          >
+            Tip: Use the highlights to connect intake patterns with outcomes
+            over time.
+          </div>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
