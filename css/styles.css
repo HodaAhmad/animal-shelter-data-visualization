@@ -18,6 +18,7 @@
   --c-green-resolved: #215732; /* resolved/grounded */
   --c-green-action: #3AAF2A;   /* adoption-only */
   --c-green-light: #E6F4EA;    /* background band */
+  --c-green-lighter: #fafffb;    /* background band */
 
   /* NEW: actions */
   --c-foster: #D33137;
@@ -65,6 +66,7 @@ body {
   margin-inline: auto;
 }
 
+
 /* header */
 .app-header {
   padding: 20px 0 8px;
@@ -89,7 +91,7 @@ body {
 /* panels */
 .panel {
   background: var(--panel);
-  border: 1px solid var(--border);
+  border: .5px solid var(--c-green-action);
   border-radius: var(--radius);
   box-shadow: 0 6px 18px rgba(17, 24, 39, 0.08);
 }
@@ -97,7 +99,6 @@ body {
 .panel-title {
   margin: 0;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--border);
   font-size: 0.95rem;
   letter-spacing: 0.2px;
   color: var(--c-text);
@@ -489,8 +490,8 @@ body {
 }
 
 .segmented__btn.is-active {
-  background: rgba(2, 132, 199, 0.14);
-  color: rgba(2, 132, 199, 1);
+  background: var(--c-green-light);
+  color: var(--c-green-resolved);
   font-weight: 650;
 }
 
@@ -564,7 +565,7 @@ body {
 
 /* KPI accent assignments (use YOUR palette vars) */
 .kpi-card.kpi-total   { --kpi-accent: var(--c-info); }
-.kpi-card.kpi-adopt   { --kpi-accent: var(--c-green-action); }
+.kpi-card.kpi-adopt   { --kpi-accent: var(--c-foster); }
 .kpi-card.kpi-stay    { --kpi-accent: var(--c-donate); } /* or --c-neutral */
 
 
