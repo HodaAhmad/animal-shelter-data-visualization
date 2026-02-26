@@ -4,6 +4,7 @@ import { renderLocationBarView } from "./views/locationBarView.js";
 import { renderTimeView } from "./views/timeView.js";
 import { renderShelterTimeSmallMultiples } from "./views/smallMultiplesBarView.js";
 import { renderIntakeStackView } from "./views/intakeStackView.js";
+import { renderLocationDensityView } from "./views/locationDensityView.js";
 
 let data = [];
 let currentIntakeType = "All";
@@ -243,7 +244,7 @@ function render() {
     timeRows = timeRows.filter((d) => d.outcome_type === "Adoption");
   }
 
-  // rows used for “scope” KPIs 
+  // rows used for “scope” KPIs
   const scopeRows =
     selectedYear == null
       ? base
@@ -288,7 +289,13 @@ function render() {
     },
   });
 
-  renderLocationBarView(base, { topN: 20, intakeType: currentIntakeType });
+  //renderLocationBarView(base, { topN: 20, intakeType: currentIntakeType });
+
+  renderLocationDensityView(base, {
+    intakeType: currentIntakeType,
+    binsX: 12,
+    binsY: 12,
+  });
 
   renderIntakeStackView(timeRows, {
     dateField: "outcome_month_date",
