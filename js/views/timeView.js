@@ -26,7 +26,7 @@ export function renderTimeView(rows, opts = {}) {
   const height = container.clientHeight || 320;
   if (width < 150 || height < 150) return;
 
-  // Aggregate monthly counts using intake_month_date 
+  // Aggregate monthly counts using intake_month_date
 
   const dateField = opts.dateField || "outcome_month_date";
 
@@ -107,14 +107,13 @@ export function renderTimeView(rows, opts = {}) {
     .range([innerHeight, 0])
     .nice();
 
-
   // X axis (labels only)
   g.append("g")
     .attr("transform", `translate(0,${innerHeight})`)
     .call(
       d3
         .axisBottom(x)
-        .ticks(d3.timeMonth.every(6))
+        .ticks(d3.timeYear.every(1))
         .tickFormat(d3.timeFormat("%Y")),
     )
     .selectAll("text")
@@ -174,14 +173,14 @@ export function renderTimeView(rows, opts = {}) {
         p.attr("stroke-dasharray", `${L} ${L}`).attr(
           "stroke-dashoffset",
           L * 1.4,
-        ); 
+        );
       })
       .transition()
       .duration(1400)
       .ease(d3.easeCubicOut)
       .attr("stroke-dashoffset", 0);
   }
-  // Legend 
+  // Legend
   const legendItems =
     mode === "outcomes"
       ? ["All", ...series.map((s) => s.name)]
