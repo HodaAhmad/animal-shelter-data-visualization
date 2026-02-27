@@ -43,7 +43,7 @@ function wrapSvgText(
         line = [word];
         lineNumber += 1;
 
-        // if we'd exceed maxLines, truncate on the previous line
+        // if exceed maxLines truncate on the previous line
         if (lineNumber >= maxLines) {
           let truncated = tspan.text();
           while (
@@ -65,7 +65,7 @@ function wrapSvgText(
       }
     }
 
-    // If we ended up with > maxLines somehow, clamp
+    // If  > maxLines clamp
     const tspans = text.selectAll("tspan").nodes();
     if (tspans.length > maxLines) {
       tspans.slice(maxLines).forEach((n) => n.remove());
@@ -78,13 +78,10 @@ function wrapSvgText(
 
 function niceAgeLabel(raw) {
   const s = String(raw);
-
-  // grab the first two numbers in the bin label: "(12.5, 15]" => [12.5, 15]
   const nums = s.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? [];
   const a = nums[0];
   const b = nums[1];
 
-  // fallback if it doesn't look like a bin
   if (!Number.isFinite(a) || !Number.isFinite(b))
     return s.replace(/(\d+)\.0/g, "$1");
 
@@ -96,13 +93,12 @@ function niceAgeLabel(raw) {
   if (b <= 7.5) return "Adult (5–7)";
   if (b <= 10) return "Adult (7–10)";
 
-  // seniors split by ranges (NOT aggregated)
+  // seniors split by ranges 
   if (b <= 12.5) return "Senior (10–12)";
   if (b <= 15) return "Senior (12+)";
   if (b <= 17.5) return "Senior (15+)";
   if (b <= 20) return "Senior (17+)";
 
-  // beyond that: keep stepping
   return `Senior (${fmt(a)}+)`;
 }
 
@@ -153,7 +149,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
     return;
   }
 
-  // layout: ONE ROW (horizontal scroll)
+  // layout
   host.style.display = "grid";
   host.style.gridTemplateColumns = "repeat(3, minmax(0, 1fr))";
   host.style.gap = "12px";
@@ -185,7 +181,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
   ]);
   const useSharedCategories = alignedCats.has(compareBy);
 
-  // keep species stable and readable 
+  // keep species stable and readable
   const speciesCounts = d3
     .rollups(
       base,
@@ -242,7 +238,104 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
     orderIndex = new Map(globalTop.map((c, i) => [c, i]));
   }
 
-  // build each panel (species)
+  //shared scale
+  const valueKey = metric === "median_stay" ? "median_stay" : "adoption_rate";
+
+  // Build aggregations once to compute a shared x-domain
+  const bySpeciesAgg = new Map();
+
+  speciesList.forEach((species) => {
+    const panelRows = base.filter(
+      (d) => (safeStr(d.animal_type) || "Unknown") === species,
+    );
+
+    let aggregated;
+
+    if (useSharedCategories) {
+      const rowsInCats = panelRows.filter((d) =>
+        orderIndex.has(catAccessor(d)),
+      );
+
+      aggregated = d3
+        .rollups(
+          rowsInCats,
+          (v) => {
+            const total = v.length;
+            const adopted = v.filter(isAdopted).length;
+            const adoption_rate = total ? (100 * adopted) / total : 0;
+            const stays = v
+              .map((d) => +d.time_in_shelter_days)
+              .filter(Number.isFinite)
+              .filter((x) => x > 0);
+            const median_stay = stays.length ? d3.median(stays) : null;
+            return { total, adopted, adoption_rate, median_stay };
+          },
+          (d) => catAccessor(d),
+        )
+        .map(([cat, s]) => ({ cat, ...s }))
+        .filter((d) => d.total >= 10)
+        .filter((d) => metric !== "adoption_rate" || d.adoption_rate >= 0.1)
+        .filter(
+          (d) =>
+            metric !== "median_stay" ||
+            (d.median_stay != null && d.median_stay > 0.1),
+        );
+
+      aggregated.sort((a, b) => orderIndex.get(a.cat) - orderIndex.get(b.cat));
+    } else {
+      const kLocal = opts.topK ?? 8;
+
+      aggregated = d3
+        .rollups(
+          panelRows,
+          (v) => {
+            const total = v.length;
+            const adopted = v.filter(isAdopted).length;
+            const adoption_rate = total ? (100 * adopted) / total : 0;
+            const stays = v
+              .map((d) => +d.time_in_shelter_days)
+              .filter(Number.isFinite)
+              .filter((x) => x > 0);
+            const median_stay = stays.length ? d3.median(stays) : null;
+            return { total, adopted, adoption_rate, median_stay };
+          },
+          (d) => catAccessor(d),
+        )
+        .map(([cat, s]) => ({ cat, ...s }))
+        .filter((d) => d.total >= 10)
+        .filter((d) => metric !== "adoption_rate" || d.adoption_rate >= 1)
+        .filter(
+          (d) =>
+            metric !== "median_stay" ||
+            (d.median_stay != null && d.median_stay > 0.1),
+        )
+        .sort((a, b) => d3.descending(b[valueKey], a[valueKey]))
+        .slice(0, kLocal);
+    }
+
+    bySpeciesAgg.set(species, aggregated);
+  });
+
+  // Shared x max
+  const allVals = Array.from(bySpeciesAgg.values())
+    .flat()
+    .map((d) => d[valueKey])
+    .filter((v) => Number.isFinite(v));
+
+  let globalXMax = allVals.length ? d3.max(allVals) : 1;
+
+  //bounded Adoption rate
+  if (metric === "adoption_rate") {
+    globalXMax = Math.min(100, globalXMax);
+    //little headroom
+    globalXMax = Math.min(100, globalXMax * 1.05);
+    globalXMax = Math.max(5, globalXMax);
+  } else {
+    // Median stay with headroom
+    globalXMax = Math.max(1, globalXMax * 1.05);
+  }
+
+  // build each panel
   speciesList.forEach((species) => {
     const wrap = document.createElement("div");
     wrap.className = "sm-panel";
@@ -266,7 +359,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
     let aggregated;
 
     if (useSharedCategories) {
-      // aligned categories: use globalTop ordering
+      // aligned categories
       const rowsInCats = panelRows.filter((d) =>
         orderIndex.has(catAccessor(d)),
       );
@@ -281,7 +374,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
             const stays = v
               .map((d) => +d.time_in_shelter_days)
               .filter(Number.isFinite)
-              .filter((x) => x > 0); // <-- drop zeros
+              .filter((x) => x > 0); 
 
             const median_stay = stays.length ? d3.median(stays) : null;
 
@@ -291,7 +384,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
         )
         // remove tiny/empty
         .map(([cat, s]) => ({ cat, ...s }))
-        .filter((d) => d.total >= 10) // optional, but recommended
+        .filter((d) => d.total >= 10) 
         .filter((d) => metric !== "adoption_rate" || d.adoption_rate >= 0.1)
         .filter(
           (d) =>
@@ -301,7 +394,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
 
       aggregated.sort((a, b) => orderIndex.get(a.cat) - orderIndex.get(b.cat));
     } else {
-      // breed/color: per-species topK (keeps #bars constant and readable)
+      // breed/color: per-species topK 
       const kLocal = opts.topK ?? 8;
 
       aggregated = d3
@@ -314,7 +407,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
             const stays = v
               .map((d) => +d.time_in_shelter_days)
               .filter(Number.isFinite)
-              .filter((x) => x > 0); // <-- drop zeros
+              .filter((x) => x > 0); 
 
             const median_stay = stays.length ? d3.median(stays) : null;
 
@@ -356,7 +449,13 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
     // scales
     const xMax = d3.max(aggregated, (d) => d[valueKey]) || 1;
 
-    const x = d3.scaleLinear().domain([0, xMax]).range([0, innerW]).nice();
+    // shared x
+    const x = d3
+      .scaleLinear()
+      .domain([0, globalXMax])
+      .range([0, innerW])
+      .nice()
+      .clamp(true);
 
     const y = d3
       .scaleBand()
@@ -393,7 +492,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
 
     yAxisG
       .selectAll(".tick text")
-      .attr("dy", "0.32em") // vertical centering of tick label
+      .attr("dy", "0.32em") 
       .style("dominant-baseline", "middle");
 
     // wrap most labels to fit inside left margin
@@ -411,7 +510,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
       .selectAll("text")
       .attr("font-size", 11);
 
-    // bars (single series)
+    // bars 
     g.selectAll("rect.bar")
       .data(aggregated)
       .join("rect")
@@ -435,13 +534,12 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
           )
           .style("left", `${event.clientX - hostRect.left + 12}px`)
           .style("top", `${event.clientY - hostRect.top + 12}px`);
-            d3.select(this).attr("opacity", 0.9);
+        d3.select(this).attr("opacity", 0.9);
       })
-      .on("mouseleave", () => tip.style("opacity", 0))
-        d3.select(this).attr("opacity", 0.55);
+      .on("mouseleave", () => tip.style("opacity", 0));
+    d3.select(this).attr("opacity", 0.55);
 
-
-    // value labels (optional)
+    // value labels 
     g.selectAll("text.value")
       .data(aggregated)
       .join("text")
@@ -455,7 +553,7 @@ export function renderShelterTimeSmallMultiples(rows, opts = {}) {
         return d.median_stay.toFixed(1);
       });
 
-    // panel legend (metric label)
+    // panel legend
     const legend = svg
       .append("g")
       .attr(
