@@ -2,7 +2,6 @@ function safeDate(v) {
   return v instanceof Date && !Number.isNaN(+v) ? v : null;
 }
 
-
 export function renderIntakeStackView(rows, opts = {}) {
   const container = document.querySelector("#intakeStackChart");
   if (!container) return;
@@ -71,11 +70,11 @@ export function renderIntakeStackView(rows, opts = {}) {
   const innerHeight = height - margin.top - margin.bottom;
 
   //legend
-  const legendItemWidth = 140; 
+  const legendItemWidth = 140;
   const legendRowHeight = 18;
   const itemsPerRow = Math.max(1, Math.floor(innerWidth / legendItemWidth));
 
-  // Tooltip 
+  // Tooltip
   const tooltip = d3
     .select(container)
     .append("div")
@@ -187,7 +186,7 @@ export function renderIntakeStackView(rows, opts = {}) {
     .attr("rx", 3)
     .attr("fill", (k) => (k === "All" ? "rgba(17,24,39,0.25)" : color(k)))
     .attr("opacity", (k) => {
-      if (highlight === "All") return 1; 
+      if (highlight === "All") return 1;
       if (k === "All") return 0.6;
       return highlight === k ? 1 : 0.25;
     });
@@ -215,25 +214,28 @@ export function renderIntakeStackView(rows, opts = {}) {
       return d.key === highlight ? 0.95 : 0.2;
     });
 
+  const shouldAnimate = opts.animate ?? true;
+
   const rects = layers
     .selectAll("rect.segment")
     .data((d) => d.map((v) => ({ type: d.key, ...v })))
     .join("rect")
     .attr("class", "segment")
     .attr("x", (d) => x(year == null ? d.data.key : +d.data.key))
-    .attr("width", x.bandwidth())
-    // start collapsed at baseline
-    .attr("y", y(0))
-    .attr("height", 0);
+    .attr("width", x.bandwidth());
 
-  // animate to final stacked positions
-  rects
-    .transition()
-    .duration(800)
-    .ease(d3.easeCubicOut)
-    .delay((d, i) => i * 12) // small cascade
-    .attr("y", (d) => y(d[1]))
-    .attr("height", (d) => y(d[0]) - y(d[1]));
+  if (shouldAnimate) {
+    rects
+      .attr("y", y(0))
+      .attr("height", 0)
+      .transition()
+      .duration(600)
+      .ease(d3.easeCubicOut)
+      .attr("y", (d) => y(d[1]))
+      .attr("height", (d) => y(d[0]) - y(d[1]));
+  } else {
+    rects.attr("y", (d) => y(d[1])).attr("height", (d) => y(d[0]) - y(d[1]));
+  }
 
   // keep your tooltip handlers on the rects selection
   rects

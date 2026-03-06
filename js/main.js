@@ -11,6 +11,8 @@ let currentIntakeType = "All";
 let currentOutcomeMode = "Adoption";
 let highlightDecember = false;
 
+let isBooting = true;
+
 let compareBy = "breed_group";
 let metric = "adoption_rate";
 let timeViewMode = "adoptions"; // "adoptions" | "outcomes"
@@ -18,7 +20,33 @@ let timeViewMode = "adoptions"; // "adoptions" | "outcomes"
 let selectedYear = null; // null = All years
 let timeHighlight = "All";
 
-let timeAnimate = true;
+let animateTimeNextRender = true; // initial render only
+let animateIntakeNextRender = true; // initial render only
+
+//loading screen
+
+function showApp() {
+  const loading = document.getElementById("loadingScreen");
+  const app = document.getElementById("appRoot");
+
+  app?.classList.remove("is-hidden");
+
+  if (loading) {
+    loading.classList.add("is-hidden");
+    setTimeout(() => loading.remove(), 300);
+  }
+}
+
+function showLoadError(message = "Failed to load dashboard.") {
+  const loading = document.getElementById("loadingScreen");
+  if (!loading) return;
+
+  loading.innerHTML = `
+    <div class="loading-box">
+      <div class="loading-text" style="color:#b00020;">${message}</div>
+    </div>
+  `;
+}
 
 function safeNum(v) {
   const x = +v;
@@ -79,117 +107,140 @@ function renderKPICards({ scopeRows, highlightRows, highlightLabel }) {
 }
 
 async function init() {
-  data = await loadDataset("data/final_with_locations.csv");
-  runQA(data);
+  try {
+    data = await loadDataset("data/final_with_locations.csv");
+    runQA(data);
 
-  // intake type dropdown
-  const select = document.getElementById("intakeTypeSelect");
-  if (select) {
-    const intakeTypes = Array.from(
-      new Set(data.map((d) => d.intake_type).filter(Boolean)),
-    ).sort();
-    for (const t of intakeTypes) {
-      const opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t;
-      select.appendChild(opt);
+    const select = document.getElementById("intakeTypeSelect");
+    if (select) {
+      const intakeTypes = Array.from(
+        new Set(data.map((d) => d.intake_type).filter(Boolean)),
+      ).sort();
+
+      for (const t of intakeTypes) {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        select.appendChild(opt);
+      }
+
+      select.addEventListener("change", () => {
+        currentIntakeType = select.value;
+        animateTimeNextRender = false;
+        animateIntakeNextRender = false;
+        render();
+      });
     }
-    select.addEventListener("change", () => {
-      currentIntakeType = select.value;
-      render();
-    });
-  }
 
-  const countEl = document.getElementById("recordCount");
-  const totalEl = document.getElementById("recordTotal");
+    const countEl = document.getElementById("recordCount");
+    const totalEl = document.getElementById("recordTotal");
 
-  if (countEl && totalEl) {
-    countEl.textContent = data.length.toLocaleString();
-    totalEl.textContent = data.length.toLocaleString();
-  }
+    if (countEl && totalEl) {
+      countEl.textContent = data.length.toLocaleString();
+      totalEl.textContent = data.length.toLocaleString();
+    }
 
-  const outcomeSelect = document.getElementById("outcomeTypeSelect");
-  if (outcomeSelect) {
-    outcomeSelect.addEventListener("change", () => {
-      currentOutcomeMode = outcomeSelect.value; // "All" or "Adoption"
-      render();
-    });
-  }
-
-  function cssVar(name, fallback) {
-    const v = getComputedStyle(document.documentElement)
-      .getPropertyValue(name)
-      .trim();
-    return v || fallback;
-  }
-
-  // TIME VIEW MODE
-  const timeModeEl = document.getElementById("timeModeToggle");
-  if (timeModeEl) {
-    timeModeEl.querySelectorAll("button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        timeViewMode = btn.dataset.mode; // "adoptions" | "outcomes"
-        timeAnimate = true;
-        // update active UI class
-        timeModeEl
-          .querySelectorAll("button")
-          .forEach((b) => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
-
+    const outcomeSelect = document.getElementById("outcomeTypeSelect");
+    if (outcomeSelect) {
+      outcomeSelect.addEventListener("change", () => {
+        currentOutcomeMode = outcomeSelect.value;
+        animateTimeNextRender = false;
+        animateIntakeNextRender = false;
         render();
       });
+    }
+
+    const timeModeEl = document.getElementById("timeModeToggle");
+    if (timeModeEl) {
+      timeModeEl.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          timeViewMode = btn.dataset.mode;
+
+          animateTimeNextRender = true;
+          animateIntakeNextRender = true;
+
+          timeModeEl
+            .querySelectorAll("button")
+            .forEach((b) => b.classList.remove("is-active"));
+          btn.classList.add("is-active");
+
+          render();
+        });
+      });
+    }
+
+    const compareSel = document.getElementById("compareBySelect");
+    compareSel?.addEventListener("change", () => {
+      compareBy = compareSel.value;
+      animateTimeNextRender = false;
+      animateIntakeNextRender = false;
+      render();
     });
-  }
 
-  const compareSel = document.getElementById("compareBySelect");
-  compareSel?.addEventListener("change", () => {
-    compareBy = compareSel.value;
-    render();
-  });
+    document.getElementById("toggleDecember")?.addEventListener("click", () => {
+      highlightDecember = !highlightDecember;
+      render();
+    });
 
-  document.getElementById("toggleDecember")?.addEventListener("click", () => {
-    highlightDecember = !highlightDecember;
-    render();
-  });
+    const smMetricEl = document.getElementById("smMetricToggle");
+    if (smMetricEl) {
+      smMetricEl.querySelectorAll("button").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          metric = btn.dataset.metric;
+          animateTimeNextRender = false;
+          animateIntakeNextRender = false;
 
-  //metric toggle
-  // Small multiples METRIC toggle
-  const smMetricEl = document.getElementById("smMetricToggle");
-  if (smMetricEl) {
-    smMetricEl.querySelectorAll("button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        metric = btn.dataset.metric; // "adoption_rate" | "median_stay"
+          smMetricEl
+            .querySelectorAll("button")
+            .forEach((b) => b.classList.remove("is-active"));
+          btn.classList.add("is-active");
 
-        smMetricEl
-          .querySelectorAll("button")
-          .forEach((b) => b.classList.remove("is-active"));
-        btn.classList.add("is-active");
+          render();
+        });
+      });
+    }
 
-        render();
+    const btn = document.getElementById("mapFullscreenBtn");
+    const mapPanel = document.getElementById("mapView");
+
+    btn?.addEventListener("click", () => {
+      mapPanel.classList.toggle("is-fullscreen");
+      requestAnimationFrame(() => {
+        animateTimeNextRender = false;
+        animateIntakeNextRender = false;
+        requestAnimationFrame(() => render());
       });
     });
-  }
 
-  // fullscreen toggle
-  const btn = document.getElementById("mapFullscreenBtn");
-  const mapPanel = document.getElementById("mapView");
+    const mapBody = document.querySelector("#mapView .panel-body");
+    if (mapBody) {
+      const ro = new ResizeObserver(() => {
+        if (isBooting) return;
 
-  btn?.addEventListener("click", () => {
-    mapPanel.classList.toggle("is-fullscreen");
+        animateTimeNextRender = false;
+        animateIntakeNextRender = false;
+        render();
+      });
+      ro.observe(mapBody);
+    }
+    showApp();
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => render());
+      requestAnimationFrame(() => {
+        animateTimeNextRender = true;
+        animateIntakeNextRender = true;
+        render();
+
+        requestAnimationFrame(() => {
+          isBooting = false;
+        });
+      });
     });
-  });
-
-  // re-render map when its container resizes
-  const mapBody = document.querySelector("#mapView .panel-body");
-  if (mapBody) {
-    const ro = new ResizeObserver(() => render());
-    ro.observe(mapBody);
+    
+  } catch (err) {
+    console.error(err);
+    showLoadError("Failed to load dashboard data.");
   }
-
-  render();
 }
 
 function getFilteredData() {
@@ -271,7 +322,7 @@ function render() {
 
   renderTimeView(timeRows, {
     mode: timeViewMode,
-    animate: timeAnimate,
+    animate: animateTimeNextRender,
     title:
       timeViewMode === "adoptions" ? "Monthly adoptions" : "Monthly outcomes",
     label:
@@ -279,13 +330,17 @@ function render() {
 
     onSelectYear: (yr) => {
       selectedYear = yr;
-      timeAnimate = false;
+
+      animateTimeNextRender = false;
+      animateIntakeNextRender = true;
+
       render();
     },
     onHighlightChange: (h) => {
       timeHighlight = h;
       updateTimeSubtitle();
-      timeAnimate = false;
+      animateTimeNextRender = false;
+      animateIntakeNextRender = false;
     },
   });
 
@@ -302,7 +357,8 @@ function render() {
     intakeField: "intake_type",
     highlight: currentIntakeType,
     topK: 6,
-    year: selectedYear, // <-- NEW
+    year: selectedYear,
+    animate: animateIntakeNextRender,
     label: selectedYear
       ? `${selectedYear} monthly breakdown by intake type`
       : "All years seasonality by intake type",
@@ -320,6 +376,9 @@ function render() {
     topK: 8,
     maxSpecies: 4,
   });
+
+  animateTimeNextRender = false;
+  animateIntakeNextRender = false;
 }
 
 init();
