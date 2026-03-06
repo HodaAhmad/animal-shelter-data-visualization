@@ -4,6 +4,8 @@ An interactive data visualization dashboard exploring **intakes, outcomes, and s
 
 The goal of this project is to support **trend analysis, comparison, and operational insight** into how different animals enter the shelter system, how long they stay, and how outcomes vary across species and characteristics.
 
+Demo Link: https://animal-shelter-data-visualization.vercel.app/
+
 ---
 
 ## Dataset
@@ -13,6 +15,15 @@ The goal of this project is to support **trend analysis, comparison, and operati
 - **Records:** ~79,000 animal intake and outcome records
 - **Key fields used:**  
   animal type, intake type, outcome type, dates, time in shelter, breed, age group, sex, location
+
+---
+
+## Technology
+
+- **D3.js** for interactive visualizations
+- **JavaScript (ES6)** for data processing and view coordination
+- **HTML / CSS** for layout
+- **Node.js scripts** for data cleaning and preprocessing
 
 ---
 
@@ -59,17 +70,37 @@ These provide a quick high-level summary before exploring detailed views.
 ---
 
 ### 5. Geographic Distribution
-- Ranked view of intake locations
-- Highlights spatial concentration of shelter activity
+- Map-based visualization of intake locations
+- Locations are aggregated into normalized location buckets
+- Frequently occurring locations were geocoded to latitude/longitude
+- Color intensity represents intake concentration
+
+This view helps identify potential geographic intake hotspots across Austin.
 
 ---
 
 ## Aggregations & Design Choices
 
 - **Monthly aggregation** is used for all time-based views to reduce noise and highlight seasonality.
-- **Adoption rate** is computed as `adopted / total` per group to normalize differences i
+- **Adoption rate** is computed as `adopted / total` per group to normalize differences in group size.
+- **Median shelter stay** is used instead of the mean to reduce the influence of extreme long stays.
 
 
 ## How to Run
 
-Open `index.html` in a modern web browser.
+```md
+## How to Run
+
+1. Clone the repository
+2. Open `index.html` in a modern browser
+
+For best results, run using a local server:
+
+```bash
+python -m http.server
+```
+
+then open: http://localhost:8000
+
+
+
